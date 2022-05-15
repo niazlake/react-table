@@ -1,27 +1,69 @@
-import React from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import api from '../lib/api';
-import Button from '@material-ui/core/Button';
-import Typography from '@material-ui/core/Typography';
 import Container from '@material-ui/core/Container';
-import Box from '@material-ui/core/Box';
+import {
+    Paper,
+    Box
+} from "@material-ui/core";
+import {TableList} from "./Table";
 
-const fetchData = async () => {
-  const result = await api.getUsersDiff();
-  console.log(result);
-};
+const BOX_STYLES = {p: 2};
 
 export const App = () => {
-  return (
-    <Container className="app" fixed>
-      <Box data-testid="app-box" m={2}>
-        <Typography>Your app should show up here.</Typography>
-        {/* Just a dummy fetcher to show how the api should be used, this should be removed */}
-        <Button variant="contained" color="primary" onClick={fetchData}>
-          Test data fetch
-        </Button>
-      </Box>
-    </Container>
-  );
+    const [usersTableList, setUsersTableList] = useState({
+        status: null,
+        data: [],
+    });
+    const [projectsTableList, setProjectsTableList] = useState({
+        status: null,
+        data: []
+    });
+
+
+    const fetchUsersData = useCallback(async () => {
+        setUsersTableList(value => ({...value, status: 'LOADING'}));
+
+        try {
+            const result = await api.getUsersDiff();
+            setUsersTableList(value => ({...value, data: value.data.concat(result.data), status: 'SUCCESS'}));
+        } catch (error) {
+            setUsersTableList(value => ({...value, status: 'ERROR'}));
+        }
+    }, []);
+
+    const fetchProjectsData = useCallback(async () => {
+        setProjectsTableList(value => ({...value, status: 'LOADING'}));
+
+        try {
+            const result = await api.getProjectsDiff();
+            setProjectsTableList(value => ({...value, data: value.data.concat(result.data), status: 'SUCCESS'}));
+        } catch (error) {
+            setProjectsTableList(value => ({...value, status: 'ERROR'}));
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchUsersData();
+        fetchProjectsData();
+    }, []);
+
+    return (
+        <>
+            <Box sx={BOX_STYLES}>
+                <Container data-testid="userTable" component={Paper} fixed>
+                    <TableList tableDataList={usersTableList.data} status={usersTableList.status}
+                               fetchData={fetchUsersData}/>
+                </Container>
+            </Box>
+            <Box sx={BOX_STYLES}>
+                <Container data-testid="projectTable" component={Paper} fixed>
+                    <TableList tableDataList={projectsTableList.data} status={projectsTableList.status}
+                               fetchData={fetchProjectsData}/>
+                </Container>
+            </Box>
+
+        </>
+    );
 };
 
 export default App;

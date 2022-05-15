@@ -10,8 +10,9 @@ describe('<App />', () => {
   });
 
   describe('render()', () => {
-    it('renders the Box', () => {
-      expect(wrapper.find({ 'data-testid': 'app-box' })).toHaveLength(1);
+    it('renders the app', () => {
+      expect(wrapper.find({ 'data-testid': 'userTable' })).toHaveLength(1);
+      expect(wrapper.find({ 'data-testid': 'projectTable' })).toHaveLength(1);
     });
   });
 });
